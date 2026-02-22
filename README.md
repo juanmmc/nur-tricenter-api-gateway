@@ -110,7 +110,7 @@ Debería ver:
 
 ```bash
 CONTAINER ID   IMAGE                                     COMMAND                  CREATED              STATUS              PORTS                                         NAMES
-------------   modulo-6-actividad-1-juanmmc-apigateway   "dotnet ApiGateway.d…"   About a minute ago   Up About a minute   0.0.0.0:5000->8080/tcp, [::]:5000->8080/tcp   apigateway
+------------   nur-tricenter-api-gateway                 "dotnet ApiGateway.d…"   About a minute ago   Up About a minute   0.0.0.0:5000->8080/tcp, [::]:5000->8080/tcp   apigateway
 ```
 
 ### 4. Ver los logs
@@ -128,12 +128,6 @@ docker-compose down
 ## 🌐 Acceso al API Gateway
 
 Una vez iniciado el contenedor, el API Gateway estará disponible en: http://localhost:5000
-
-### Endpoints de prueba:
-
-- **Login**: `http://localhost:5000/api/login`
-- **Users**: `http://localhost:5000/api/logout` (requiere token)
-- **Posts**: `http://localhost:5000/api/posts` (requiere token)
 
 ## 🔐 Autenticación (Keycloak)
 
