@@ -10,9 +10,9 @@ public class MicroserviceRegistry
     {
         Register(new KeycloakConfig());
         Register(new LogisticsConfig());
-        //Register(new ProductionConfig());
+        Register(new ProductionConfig());
         //Register(new ContractsConfig());
-        //Register(new PatientConfig());
+        Register(new PatientConfig());
     }
 
     public void Register(MicroserviceConfig service)

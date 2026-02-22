@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   apigateway:
     build:
       context: .
@@ -11,6 +9,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+      - PATIENTS_URL=http://host.docker.internal:8080
+      - PRODUCTION_URL=http://host.docker.internal:8000
+      - KEYCLOAK_AUTHORITY=http://154.38.180.80:8080/realms/group3realm
+      - KEYCLOAK_AUDIENCE=account
+      - KEYCLOAK_REQUIRE_HTTPS_METADATA=false
     networks:
       - microservices-network
     restart: unless-stopped

@@ -5,6 +5,13 @@ using Microsoft.IdentityModel.Tokens;
 using Yarp.ReverseProxy;
 
 var builder = WebApplication.CreateBuilder(args);
+var keycloakAuthority = Environment.GetEnvironmentVariable("KEYCLOAK_AUTHORITY")
+    ?? "http://154.38.180.80:8080/realms/group3realm";
+var keycloakAudience = Environment.GetEnvironmentVariable("KEYCLOAK_AUDIENCE")
+    ?? "account";
+var requireHttpsMetadata = bool.TryParse(
+    Environment.GetEnvironmentVariable("KEYCLOAK_REQUIRE_HTTPS_METADATA"),
+    out var requireHttps) && requireHttps;
 
 // Add services to the container.
 
@@ -16,9 +23,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "http://154.38.180.80:8080/realms/group3realm"; // IdentityServer URL
-        options.RequireHttpsMetadata = false; // Ensure HTTPS is used
-        options.Audience = "account"; // API Gateway's client ID
+        options.Authority = keycloakAuthority;
+        options.RequireHttpsMetadata = requireHttpsMetadata;
+        options.Audience = keycloakAudience;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
