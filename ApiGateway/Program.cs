@@ -1,5 +1,6 @@
 using ApiGateway.Configuration;
 using ApiGateway.Security;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Yarp.ReverseProxy;
@@ -80,6 +81,18 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    const string correlationHeader = "X-Correlation-Id";
+    var correlationId = context.Request.Headers[correlationHeader].FirstOrDefault();
+    if (string.IsNullOrWhiteSpace(correlationId))
+    {
+        correlationId = Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString();
+        context.Request.Headers[correlationHeader] = correlationId;
+    }
+    context.Response.Headers[correlationHeader] = correlationId;
+    await next();
+});
 app.UseAuthentication();
 app.UseAuthorization();
 

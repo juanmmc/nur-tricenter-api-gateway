@@ -129,6 +129,30 @@ docker-compose down
 
 Una vez iniciado el contenedor, el API Gateway estará disponible en: http://localhost:5000
 
+## 🔁 Integración con `patients`
+
+Rutas expuestas por gateway:
+
+- `GET|POST /patients` -> `PATIENTS_URL/api/patient`
+- `GET|POST|PUT|DELETE|PATCH /patients/{**catch-all}` -> `PATIENTS_URL/api/patient/{**catch-all}`
+
+Variable:
+- `PATIENTS_URL` (default en código: `http://localhost:8080`)
+
+Ejemplo:
+
+```bash
+curl -X GET "http://localhost:5000/patients" \
+  -H "Authorization: Bearer <token>"
+```
+
+## 🧩 Correlation ID estándar
+
+- Header usado: `X-Correlation-Id`
+- Si el cliente no lo envía, el gateway lo genera.
+- El gateway lo devuelve en la respuesta.
+- Este header se propaga al microservicio para trazabilidad end-to-end.
+
 ## 🔐 Autenticación (Keycloak)
 
 - **Grant Type**: `password`
