@@ -9,6 +9,7 @@ public class MicroserviceRegistry
     public MicroserviceRegistry()
     {
         Register(new KeycloakConfig());
+        Register(new AppointmentConfig());
         Register(new LogisticsConfig());
         Register(new ProductionConfig());
         //Register(new ContractsConfig());

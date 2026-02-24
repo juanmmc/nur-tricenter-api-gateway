@@ -10,6 +10,7 @@
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - PATIENTS_URL=http://host.docker.internal:8080
+      - APPOINTMENTS_URL=http://host.docker.internal:9004
       - PRODUCTION_URL=http://host.docker.internal:8000
       - KEYCLOAK_AUTHORITY=http://154.38.180.80:8080/realms/group3realm
       - KEYCLOAK_AUDIENCE=account
