@@ -14,6 +14,7 @@ public class MicroserviceRegistry
         Register(new ProductionConfig());
         //Register(new ContractsConfig());
         Register(new PatientConfig());
+        Register(new PlansConfig());
     }
 
     public void Register(MicroserviceConfig service)
