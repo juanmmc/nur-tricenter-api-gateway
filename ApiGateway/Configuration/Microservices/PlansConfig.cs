@@ -15,7 +15,7 @@ public class PlansConfig : MicroserviceConfig
             Name = "ingredients-all",
             Path = "/api/ingredients/{**catch-all}",
             Methods = new[] { "GET", "POST" , "PUT", "DELETE"},
-            //AuthorizationPolicy = AuthPolicies.Authenticated,
+            AuthorizationPolicy = AuthPolicies.Authenticated,
             CustomTransforms = new() { { "PathPattern", "/ingredients/{**catch-all}" } }
         },
         new MicroserviceRoute
@@ -23,7 +23,7 @@ public class PlansConfig : MicroserviceConfig
             Name = "recipes-all",
             Path = "/api/recipes/{**catch-all}",
             Methods = new[] { "GET", "POST" , "PUT", "DELETE" },
-            //AuthorizationPolicy = AuthPolicies.Authenticated,
+            AuthorizationPolicy = AuthPolicies.Authenticated,
             CustomTransforms = new() { { "PathPattern", "/recipes/{**catch-all}" } }
         },
         new MicroserviceRoute
@@ -31,7 +31,7 @@ public class PlansConfig : MicroserviceConfig
             Name = "meal-plans-all",
             Path = "/api/meal-plans/{**catch-all}",
             Methods = new[] { "GET", "POST" , "PUT", "DELETE" },
-            //AuthorizationPolicy = AuthPolicies.Authenticated,
+            AuthorizationPolicy = AuthPolicies.Authenticated,
             CustomTransforms = new() { { "PathPattern", "/meal-plans/{**catch-all}" } }
         }
     };
