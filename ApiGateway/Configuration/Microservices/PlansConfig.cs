@@ -7,7 +7,7 @@ public class PlansConfig : MicroserviceConfig
     public override string Name => "plans";
     public override string ClusterId => "plans";
     public override string BaseUrl => Environment.GetEnvironmentVariable("PLANS_URL")
-        ?? "http://localhost:39001";
+        ?? "http://localhost:8081";
 
     public override List<MicroserviceRoute> GetRoutes() => new()
     {
