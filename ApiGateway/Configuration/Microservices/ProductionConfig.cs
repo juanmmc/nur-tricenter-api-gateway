@@ -13,6 +13,22 @@ public class ProductionConfig : MicroserviceConfig
     {
         new MicroserviceRoute
         {
+            Name = "production-auth-login",
+            Path = "/auth/login",
+            Methods = new[] { "POST" },
+            AuthorizationPolicy = null,
+            CustomTransforms = new() { { "PathPattern", "/api/login" } }
+        },
+        new MicroserviceRoute
+        {
+            Name = "production-auth-refresh",
+            Path = "/auth/refresh",
+            Methods = new[] { "POST" },
+            AuthorizationPolicy = null,
+            CustomTransforms = new() { { "PathPattern", "/api/refresh" } }
+        },
+        new MicroserviceRoute
+        {
             Name = "production-root",
             Path = "/production",
             Methods = new[] { "GET", "POST", "PUT", "DELETE", "PATCH" },
