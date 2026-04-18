@@ -14,7 +14,25 @@ var requireHttpsMetadata = bool.TryParse(
     Environment.GetEnvironmentVariable("KEYCLOAK_REQUIRE_HTTPS_METADATA"),
     out var requireHttps) && requireHttps;
 
+var corsAllowedOrigins = (Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
+        ?? "http://localhost:4200")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+const string CorsPolicy = "DefaultCors";
+
 // Add services to the container.
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy =>
+    {
+        policy.WithOrigins(corsAllowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .WithExposedHeaders("X-Correlation-Id");
+    });
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -80,7 +98,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.Use(async (context, next) =>
 {
     const string correlationHeader = "X-Correlation-Id";
@@ -93,8 +110,18 @@ app.Use(async (context, next) =>
     context.Response.Headers[correlationHeader] = correlationId;
     await next();
 });
+
+app.UseCors(CorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/", () => Results.Ok(new
+{
+    service = "nur-tricenter-api-gateway",
+    status = "up",
+    timestamp = DateTime.UtcNow
+}));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 app.MapControllers();
 app.MapReverseProxy();
