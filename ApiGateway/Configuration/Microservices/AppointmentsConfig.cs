@@ -12,6 +12,14 @@ public class AppointmentConfig : MicroserviceConfig {
   {
       new MicroserviceRoute
       {
+          Name = "nutritionist-appointments",
+          Path = "/nutritionist/appointments",
+          Methods = new[] { "GET" },
+          AuthorizationPolicy = AuthPolicies.Authenticated,
+          CustomTransforms = new() { { "PathPattern", "/api/nutritionist/appointments" } }
+      },
+      new MicroserviceRoute
+      {
           Name = "nutritionist-all",
           Path = "/nutritionist",
           Methods = new[] { "GET", "POST" , "PUT", "DELETE"},
@@ -33,6 +41,22 @@ public class AppointmentConfig : MicroserviceConfig {
           Methods = new[] { "POST" },
           AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/appointment/attend" } }
+      },
+      new MicroserviceRoute
+      {
+          Name = "appointment-cancel",
+          Path = "/appointment/cancel",
+          Methods = new[] { "POST" },
+          AuthorizationPolicy = AuthPolicies.Authenticated,
+          CustomTransforms = new() { { "PathPattern", "/api/appointment/cancel" } }
+      },
+      new MicroserviceRoute
+      {
+          Name = "appointment-notattended",
+          Path = "/appointment/notattended",
+          Methods = new[] { "POST" },
+          AuthorizationPolicy = AuthPolicies.Authenticated,
+          CustomTransforms = new() { { "PathPattern", "/api/appointment/notattended" } }
       }
   };
 }

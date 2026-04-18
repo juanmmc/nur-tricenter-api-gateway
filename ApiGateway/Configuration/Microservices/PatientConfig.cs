@@ -7,10 +7,26 @@ public class PatientConfig : MicroserviceConfig
     public override string Name => "patients";
     public override string ClusterId => "patients";
     public override string BaseUrl => Environment.GetEnvironmentVariable("PATIENTS_URL")
-        ?? "http://localhost:8080";
+        ?? "http://207.180.197.169:8080";
 
     public override List<MicroserviceRoute> GetRoutes() => new()
     {
+        new MicroserviceRoute
+        {
+            Name = "patients-login",
+            Path = "/auth/patient/login",
+            Methods = new[] { "POST" },
+            AuthorizationPolicy = null,
+            CustomTransforms = new() { { "PathPattern", "/api/login" } }
+        },
+        new MicroserviceRoute
+        {
+            Name = "patients-refresh",
+            Path = "/auth/patient/refresh",
+            Methods = new[] { "POST" },
+            AuthorizationPolicy = null,
+            CustomTransforms = new() { { "PathPattern", "/api/refresh" } }
+        },
         new MicroserviceRoute
         {
             Name = "patients-root",
