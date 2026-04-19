@@ -7,7 +7,7 @@ public class LogisticsConfig : MicroserviceConfig
     public override string Name => "logistics";
     public override string ClusterId => "logistics";
     public override string BaseUrl => Environment.GetEnvironmentVariable("LOGISTICS_URL")
-        ?? "http://localhost:8090";
+        ?? "http://213.136.90.174:9007";
 
     public override List<MicroserviceRoute> GetRoutes() => new()
     {
