@@ -4,25 +4,25 @@ namespace ApiGateway.Configuration.Microservices;
 
 public class ContractsConfig : MicroserviceConfig
 {
-    public override string Name => "contrato";
-    public override string ClusterId => "contrato";
-    public override string BaseUrl => Environment.GetEnvironmentVariable("CONTRATO_URL")
+    public override string Name => "contracts";
+    public override string ClusterId => "contracts";
+    public override string BaseUrl => Environment.GetEnvironmentVariable("CONTRACTS_URL")
         ?? "http://213.136.90.174:6670";
 
     public override List<MicroserviceRoute> GetRoutes() => new()
     {
         new MicroserviceRoute
         {
-            Name = "contrato-root",
-            Path = "/contrato",
+            Name = "contracts-root",
+            Path = "/contracts",
             Methods = new[] { "GET", "POST", "PUT", "DELETE", "PATCH" },
             AuthorizationPolicy = AuthPolicies.Authenticated,
             CustomTransforms = new() { { "PathPattern", "/api" } }
         },
         new MicroserviceRoute
         {
-            Name = "contrato-all",
-            Path = "/contrato/{**catch-all}",
+            Name = "contracts-all",
+            Path = "/contracts/{**catch-all}",
             Methods = new[] { "GET", "POST", "PUT", "DELETE", "PATCH" },
             AuthorizationPolicy = AuthPolicies.Authenticated,
             CustomTransforms = new() { { "PathPattern", "/api/{**catch-all}" } }
