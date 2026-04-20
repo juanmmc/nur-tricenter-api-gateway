@@ -15,7 +15,7 @@ public class ContractsConfig : MicroserviceConfig
         {
             Name = "contracts-root",
             Path = "/contracts",
-            Methods = new[] { "GET", "POST", "PUT", "DELETE", "PATCH" },
+            Methods = ["GET", "POST", "PUT", "DELETE", "PATCH"],
             AuthorizationPolicy = AuthPolicies.Authenticated,
             CustomTransforms = new() { { "PathPattern", "/api" } }
         },
@@ -23,7 +23,7 @@ public class ContractsConfig : MicroserviceConfig
         {
             Name = "contracts-all",
             Path = "/contracts/{**catch-all}",
-            Methods = new[] { "GET", "POST", "PUT", "DELETE", "PATCH" },
+            Methods = ["GET", "POST", "PUT", "DELETE", "PATCH"],
             AuthorizationPolicy = AuthPolicies.Authenticated,
             CustomTransforms = new() { { "PathPattern", "/api/{**catch-all}" } }
         }

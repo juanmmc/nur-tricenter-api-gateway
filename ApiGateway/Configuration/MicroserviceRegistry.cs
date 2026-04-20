@@ -12,7 +12,7 @@ public class MicroserviceRegistry
         Register(new AppointmentConfig());
         Register(new LogisticsConfig());
         Register(new ProductionConfig());
-        //Register(new ContractsConfig());
+        Register(new ContractsConfig());
         Register(new PatientConfig());
         Register(new PlansConfig());
     }
