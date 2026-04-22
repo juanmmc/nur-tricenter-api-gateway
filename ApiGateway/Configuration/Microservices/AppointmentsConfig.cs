@@ -23,7 +23,7 @@ public class AppointmentConfig : MicroserviceConfig {
           Name = "nutritionist-all",
           Path = "/nutritionist",
           Methods = new[] { "GET", "POST" , "PUT", "DELETE"},
-          AuthorizationPolicy = AuthPolicies.AdminOnly,
+          AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/nutritionist" } }
       },
       new MicroserviceRoute
