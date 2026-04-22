@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Yarp.ReverseProxy;
+using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
 var keycloakAuthority = Environment.GetEnvironmentVariable("KEYCLOAK_AUTHORITY")
@@ -85,7 +86,16 @@ var registry = new MicroserviceRegistry();
 ReverseProxyConfigBuilder.ConfigureMicroserviceRoutes(builder.Configuration, registry);
 
 builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+    .AddTransforms(builderContext =>
+    {
+        builderContext.AddRequestTransform(ctx =>
+        {
+            ctx.ProxyRequest.Headers.Remove("Origin");
+            ctx.ProxyRequest.Headers.Remove("Referer");
+            return ValueTask.CompletedTask;
+        });
+    });
 
 var app = builder.Build();
 
