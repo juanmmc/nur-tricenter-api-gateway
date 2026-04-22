@@ -14,12 +14,6 @@ var requireHttpsMetadata = bool.TryParse(
     Environment.GetEnvironmentVariable("KEYCLOAK_REQUIRE_HTTPS_METADATA"),
     out var requireHttps) && requireHttps;
 
-var corsEnv = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS");
-var corsAllowedOrigins = string.IsNullOrWhiteSpace(corsEnv)
-    ? Array.Empty<string>()
-    : corsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-var allowAnyOrigin = corsAllowedOrigins.Length == 0 || corsAllowedOrigins.Contains("*");
-
 const string CorsPolicy = "DefaultCors";
 
 // Add services to the container.
@@ -28,16 +22,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(CorsPolicy, policy =>
     {
-        if (allowAnyOrigin)
-        {
-            policy.SetIsOriginAllowed(_ => true);
-        }
-        else
-        {
-            policy.WithOrigins(corsAllowedOrigins);
-        }
-
-        policy.AllowAnyHeader()
+        policy.SetIsOriginAllowed(_ => true)
+              .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials()
               .WithExposedHeaders("X-Correlation-Id");
