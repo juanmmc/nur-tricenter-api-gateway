@@ -10,12 +10,88 @@ services:
       - .env
     environment:
       - ASPNETCORE_URLS=http://+:8080
+      - SERVICE_NAME=nur-tricenter-api-gateway
+      - SERVICE_VERSION=1.0.0
+      - SERVICE_ADDRESS=apigateway
+      - SERVICE_PORT=8080
+      - CONSUL_ENABLED=${CONSUL_ENABLED:-true}
+      - CONSUL_HOST=${CONSUL_HOST:-consul}
+      - CONSUL_PORT=${CONSUL_PORT:-8500}
+      - TRACING_ENABLED=${TRACING_ENABLED:-true}
+      - ZIPKIN_ENDPOINT=${ZIPKIN_ENDPOINT:-http://jaeger:9411/api/v2/spans}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - microservices-network
+    depends_on:
+      - consul
+      - jaeger
+      - prometheus
+    restart: unless-stopped
+
+  consul:
+    image: hashicorp/consul:1.18
+    container_name: gateway-consul
+    command: agent -server -bootstrap -ui -client=0.0.0.0
+    ports:
+      - "${CONSUL_UI_PORT:-8500}:8500"
+    volumes:
+      - consul_data:/consul/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: gateway-jaeger
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "${JAEGER_ZIPKIN_PORT:-9411}:9411"
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: gateway-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./docker/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: gateway-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - ./docker/monitoring/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    networks:
+      - microservices-network
+    depends_on:
+      - prometheus
     restart: unless-stopped
 
 networks:
   microservices-network:
     driver: bridge
+
+volumes:
+  consul_data:
+  prometheus_data:
+  grafana_data:

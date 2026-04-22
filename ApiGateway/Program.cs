@@ -1,12 +1,35 @@
 using ApiGateway.Configuration;
+using ApiGateway.Discovery;
+using ApiGateway.Observability;
 using ApiGateway.Security;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Prometheus;
+using Serilog;
+using Serilog.Formatting.Compact;
 using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var observability = ObservabilityOptions.FromEnvironment();
+var consulOptions = ConsulOptions.FromEnvironment();
+
+// Serilog: structured JSON logging with trace correlation enrichers.
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithMachineName()
+    .Enrich.WithProperty("service", observability.ServiceName)
+    .Enrich.WithProperty("version", observability.ServiceVersion)
+    .WriteTo.Console(new CompactJsonFormatter())
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 var keycloakAuthority = Environment.GetEnvironmentVariable("KEYCLOAK_AUTHORITY")
     ?? "http://154.38.180.80:8080/realms/group3realm";
 var keycloakAudience = Environment.GetEnvironmentVariable("KEYCLOAK_AUDIENCE")
@@ -93,9 +116,40 @@ builder.Services.AddReverseProxy()
         {
             ctx.ProxyRequest.Headers.Remove("Origin");
             ctx.ProxyRequest.Headers.Remove("Referer");
+
+            var correlationId = ctx.HttpContext.Request.Headers["X-Correlation-Id"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(correlationId))
+            {
+                ctx.ProxyRequest.Headers.Remove("X-Correlation-Id");
+                ctx.ProxyRequest.Headers.TryAddWithoutValidation("X-Correlation-Id", correlationId);
+            }
             return ValueTask.CompletedTask;
         });
     });
+
+// OpenTelemetry tracing with W3C context propagation to downstream services.
+if (observability.TracingEnabled)
+{
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(resource => resource
+            .AddService(
+                serviceName: observability.ServiceName,
+                serviceVersion: observability.ServiceVersion))
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSource("Yarp.ReverseProxy")
+            .AddZipkinExporter(zipkin =>
+            {
+                zipkin.Endpoint = new Uri(observability.ZipkinEndpoint);
+            }));
+}
+
+// Service discovery: register gateway with Consul.
+builder.Services.AddSingleton(consulOptions);
+builder.Services.AddSingleton(observability);
+builder.Services.AddHttpClient("consul");
+builder.Services.AddHostedService<ConsulServiceRegistrar>();
 
 var app = builder.Build();
 
@@ -116,22 +170,43 @@ app.Use(async (context, next) =>
         context.Request.Headers[correlationHeader] = correlationId;
     }
     context.Response.Headers[correlationHeader] = correlationId;
-    await next();
+
+    using (Serilog.Context.LogContext.PushProperty("correlation_id", correlationId))
+    using (Serilog.Context.LogContext.PushProperty("trace_id", Activity.Current?.TraceId.ToString()))
+    {
+        await next();
+    }
 });
 
+app.UseSerilogRequestLogging();
+
 app.UseCors(CorsPolicy);
+
+// Prometheus metrics middleware (HTTP request counters + custom metrics).
+app.UseHttpMetrics();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/", () => Results.Ok(new
 {
-    service = "nur-tricenter-api-gateway",
+    service = observability.ServiceName,
     status = "up",
     timestamp = DateTime.UtcNow
 }));
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
+// Prometheus metrics endpoint scraped by Prometheus.
+app.MapMetrics("/metrics");
+
 app.MapControllers();
 app.MapReverseProxy();
 
-app.Run();
+try
+{
+    app.Run();
+}
+finally
+{
+    Log.CloseAndFlush();
+}
