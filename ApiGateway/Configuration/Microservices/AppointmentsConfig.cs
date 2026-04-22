@@ -6,7 +6,7 @@ public class AppointmentConfig : MicroserviceConfig {
   public override string Name => "appointments";
   public override string ClusterId => "appointments";
   public override string BaseUrl => Environment.GetEnvironmentVariable("APPOINTMENTS_URL")
-      ?? "http://localhost:9004";
+      ?? "http://146.190.116.159:9004";
 
   public override List<MicroserviceRoute> GetRoutes() => new()
   {
