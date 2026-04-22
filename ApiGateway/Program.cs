@@ -68,9 +68,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         {
                             foreach (var role in roles.EnumerateArray())
                             {
+                                var value = role.GetString();
+                                if (string.IsNullOrWhiteSpace(value)) continue;
                                 claimsIdentity.AddClaim(new System.Security.Claims.Claim(
                                     System.Security.Claims.ClaimTypes.Role,
-                                    role.GetString() ?? string.Empty));
+                                    value.ToLowerInvariant()));
                             }
                         }
                     }
