@@ -41,6 +41,7 @@ jobs:
           dotnet test NurTricenterApiGateway.sln \
             --no-build -c Release --logger "trx;LogFileName=test-results.trx" \
             --collect:"XPlat Code Coverage" \
+            --settings ApiGateway.Tests/coverlet.runsettings \
             --results-directory ./TestResults
 
       - name: Upload test results
@@ -50,6 +51,88 @@ jobs:
           name: test-results
           path: TestResults/
           retention-days: 7
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate coverage report
+        run: |
+          export PATH="$PATH:/home/runner/.dotnet/tools"
+          reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"CoverageReport" \
+            -reporttypes:"Html;MarkdownSummaryGithub;TextSummary"
+          cat CoverageReport/Summary.txt
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: CoverageReport/
+          retention-days: 7
+
+      # ──────────────────────────────────────────────
+      # Smoke integration tests (Newman, gateway-only).
+      # ──────────────────────────────────────────────
+      - name: Start gateway for integration tests
+        env:
+          KEYCLOAK_AUTHORITY: http://154.38.180.80:8080/realms/group3realm
+          KEYCLOAK_AUDIENCE: account
+          KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
+          CONSUL_ENABLED: "false"
+          TRACING_ENABLED: "false"
+          ASPNETCORE_URLS: http://+:5000
+        run: |
+          nohup dotnet run --project ApiGateway/ApiGateway.csproj --no-build -c Release > gateway.log 2>&1 &
+          echo $! > gateway.pid
+
+      - name: Wait for gateway /health
+        run: |
+          for i in $(seq 1 45); do
+            if curl -fs http://localhost:5000/health | grep -q healthy; then
+              echo "Gateway is UP."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Gateway did not become healthy."
+          tail -n 200 gateway.log || true
+          exit 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      - name: Run Postman smoke collection
+        run: |
+          mkdir -p newman-reports
+          newman run test-integration/nur-gateway.postman_collection.json \
+            -e test-integration/nur-gateway.postman_environment.json \
+            --env-var baseUrl=http://localhost:5000 \
+            --env-var runSmokeOnly=true \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export newman-reports/report.html
+
+      - name: Upload Newman report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: newman-reports/
+          retention-days: 7
+
+      - name: Stop gateway
+        if: always()
+        run: |
+          if [ -f gateway.pid ]; then
+            kill "$(cat gateway.pid)" || true
+          fi
+          tail -n 80 gateway.log || true
 
       - name: Build deploy artifact
         run: |

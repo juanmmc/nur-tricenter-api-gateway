@@ -1,0 +1,225 @@
+{
+  "info": {
+    "name": "NurTriCenter - API Gateway Integration",
+    "description": "Integration tests end-to-end sobre el gateway YARP: health, observabilidad, auth (Keycloak) y ruteo a microservicios downstream.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "bc7f30c1-8b5e-4a11-9d0a-6f1cfe42bd11"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "keycloakUser", "value": "admin" },
+    { "key": "keycloakPassword", "value": "admin" },
+    { "key": "accessToken", "value": "" },
+    { "key": "runSmokeOnly", "value": "true" }
+  ],
+  "item": [
+    {
+      "name": "Gateway — root status",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('service es el gateway', () => pm.expect(body.service).to.contain('nur-tricenter-api-gateway'));",
+              "pm.test('status up', () => pm.expect(body.status).to.eql('up'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gateway — health",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('status healthy', () => pm.expect(pm.response.json().status).to.eql('healthy'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gateway — correlation id es propagado",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-Correlation-Id", "value": "postman-integration-test" }],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('X-Correlation-Id devuelto', () => {",
+              "  pm.expect(pm.response.headers.get('X-Correlation-Id')).to.eql('postman-integration-test');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gateway — metrics (Prometheus)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/metrics", "host": ["{{baseUrl}}"], "path": ["metrics"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('formato Prometheus', () => pm.expect(pm.response.text()).to.match(/http_request_duration_seconds|process_cpu_seconds_total|# HELP/));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gateway — CORS preflight",
+      "request": {
+        "method": "OPTIONS",
+        "header": [
+          { "key": "Origin", "value": "http://localhost:4200" },
+          { "key": "Access-Control-Request-Method", "value": "GET" },
+          { "key": "Access-Control-Request-Headers", "value": "authorization" }
+        ],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('header Allow-Origin presente', () => {",
+              "  pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.not.be.null;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth — token via gateway (Keycloak)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "password" },
+            { "key": "client_id", "value": "admin-cli" },
+            { "key": "username", "value": "{{keycloakUser}}" },
+            { "key": "password", "value": "{{keycloakPassword}}" }
+          ]
+        },
+        "url": { "raw": "{{baseUrl}}/auth/token", "host": ["{{baseUrl}}"], "path": ["auth", "token"] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.collectionVariables.get('runSmokeOnly') === 'true') {",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('access_token presente', () => pm.expect(body.access_token).to.be.a('string').and.not.empty);",
+              "pm.collectionVariables.set('accessToken', body.access_token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rutas protegidas — 401 sin token",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/patients", "host": ["{{baseUrl}}"], "path": ["patients"] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.collectionVariables.get('runSmokeOnly') === 'true') {",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Routing — patients vía gateway (autenticado)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": { "raw": "{{baseUrl}}/patients", "host": ["{{baseUrl}}"], "path": ["patients"] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.collectionVariables.get('runSmokeOnly') === 'true') {",
+              "  pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200 o 403 (según roles)', () => pm.expect([200, 403]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
