@@ -77,14 +77,16 @@ jobs:
       # ──────────────────────────────────────────────
       - name: Start gateway for integration tests
         env:
+          ASPNETCORE_ENVIRONMENT: Production
+          ASPNETCORE_URLS: http://0.0.0.0:5000
           KEYCLOAK_AUTHORITY: http://154.38.180.80:8080/realms/group3realm
           KEYCLOAK_AUDIENCE: account
           KEYCLOAK_REQUIRE_HTTPS_METADATA: "false"
           CONSUL_ENABLED: "false"
           TRACING_ENABLED: "false"
-          ASPNETCORE_URLS: http://+:5000
         run: |
-          nohup dotnet run --project ApiGateway/ApiGateway.csproj --no-build -c Release > gateway.log 2>&1 &
+          # Run the built DLL directly to avoid launchSettings.json overriding URLs/ports.
+          nohup dotnet ApiGateway/bin/Release/net8.0/ApiGateway.dll > gateway.log 2>&1 &
           echo $! > gateway.pid
 
       - name: Wait for gateway /health
