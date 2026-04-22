@@ -20,11 +20,35 @@ public class AppointmentConfig : MicroserviceConfig {
       },
       new MicroserviceRoute
       {
-          Name = "nutritionist-all",
+          Name = "nutritionist-list",
           Path = "/nutritionist",
-          Methods = new[] { "GET", "POST" , "PUT", "DELETE"},
+          Methods = new[] { "GET" },
           AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/nutritionist" } }
+      },
+      new MicroserviceRoute
+      {
+          Name = "nutritionist-write",
+          Path = "/nutritionist",
+          Methods = new[] { "POST", "PUT", "DELETE" },
+          AuthorizationPolicy = AuthPolicies.AdminOnly,
+          CustomTransforms = new() { { "PathPattern", "/api/nutritionist" } }
+      },
+      new MicroserviceRoute
+      {
+          Name = "nutritionist-by-id",
+          Path = "/nutritionist/{id}",
+          Methods = new[] { "GET" },
+          AuthorizationPolicy = AuthPolicies.Authenticated,
+          CustomTransforms = new() { { "PathPattern", "/api/nutritionist/{id}" } }
+      },
+      new MicroserviceRoute
+      {
+          Name = "nutritionist-by-id-write",
+          Path = "/nutritionist/{id}",
+          Methods = new[] { "PUT", "DELETE" },
+          AuthorizationPolicy = AuthPolicies.AdminOnly,
+          CustomTransforms = new() { { "PathPattern", "/api/nutritionist/{id}" } }
       },
       new MicroserviceRoute
       {
