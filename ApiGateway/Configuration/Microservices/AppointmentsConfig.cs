@@ -14,7 +14,7 @@ public class AppointmentConfig : MicroserviceConfig {
       {
           Name = "nutritionist-appointments",
           Path = "/nutritionist/appointments",
-          Methods = new[] { "GET" },
+          Methods = new[] { "POST" },
           AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/nutritionist/appointments" } }
       },
