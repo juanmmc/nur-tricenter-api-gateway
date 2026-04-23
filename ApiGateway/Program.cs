@@ -10,7 +10,6 @@ using OpenTelemetry.Trace;
 using Prometheus;
 using Serilog;
 using Serilog.Formatting.Compact;
-using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -106,10 +105,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options => AuthPolicies.Register(options));
 
 var registry = new MicroserviceRegistry();
-ReverseProxyConfigBuilder.ConfigureMicroserviceRoutes(builder.Configuration, registry);
+builder.Services.AddSingleton(registry);
 
 builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
     .AddTransforms(builderContext =>
     {
         builderContext.AddRequestTransform(ctx =>
@@ -145,11 +143,15 @@ if (observability.TracingEnabled)
             }));
 }
 
-// Service discovery: register gateway with Consul.
 builder.Services.AddSingleton(consulOptions);
 builder.Services.AddSingleton(observability);
 builder.Services.AddHttpClient("consul");
+builder.Services.AddSingleton<ConsulDiscoveryService>();
+builder.Services.AddSingleton<ConsulProxyConfigProvider>();
+builder.Services.AddSingleton<Yarp.ReverseProxy.Configuration.IProxyConfigProvider>(
+    sp => sp.GetRequiredService<ConsulProxyConfigProvider>());
 builder.Services.AddHostedService<ConsulServiceRegistrar>();
+builder.Services.AddHostedService<ConsulRoutePoller>();
 
 var app = builder.Build();
 
