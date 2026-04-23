@@ -31,7 +31,7 @@ public class AppointmentConfig : MicroserviceConfig {
           Name = "nutritionist-write",
           Path = "/nutritionist",
           Methods = new[] { "POST", "PUT", "DELETE" },
-          AuthorizationPolicy = AuthPolicies.AdminOnly,
+          AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/nutritionist" } }
       },
       new MicroserviceRoute
@@ -47,7 +47,7 @@ public class AppointmentConfig : MicroserviceConfig {
           Name = "nutritionist-by-id-write",
           Path = "/nutritionist/{id}",
           Methods = new[] { "PUT", "DELETE" },
-          AuthorizationPolicy = AuthPolicies.AdminOnly,
+          AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/nutritionist/{id}" } }
       },
       new MicroserviceRoute
