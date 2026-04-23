@@ -7,7 +7,9 @@ public class PatientConfig : MicroserviceConfig
     public override string Name => "patients";
     public override string ClusterId => "patients";
     public override string BaseUrl => Environment.GetEnvironmentVariable("PATIENTS_URL")
-        ?? "http://207.180.197.169:8080";
+        ?? "http://154.38.180.80:8080";
+    public override bool UseDiscovery => true;
+    public override string ConsulServiceName => "nur-tricenter-patients";
 
     public override List<MicroserviceRoute> GetRoutes() => new()
     {

@@ -7,6 +7,8 @@ public class AppointmentConfig : MicroserviceConfig {
   public override string ClusterId => "appointments";
   public override string BaseUrl => Environment.GetEnvironmentVariable("APPOINTMENTS_URL")
       ?? "http://146.190.116.159:9004";
+  public override bool UseDiscovery => true;
+  public override string ConsulServiceName => "nur-tricenter-appointments";
 
   public override List<MicroserviceRoute> GetRoutes() => new()
   {
