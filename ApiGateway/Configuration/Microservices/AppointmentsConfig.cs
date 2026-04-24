@@ -83,6 +83,14 @@ public class AppointmentConfig : MicroserviceConfig {
           Methods = new[] { "POST" },
           AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/appointment/notattended" } }
+      },
+      new MicroserviceRoute
+      {
+          Name = "appointment-by-id",
+          Path = "/appointment/{id}",
+          Methods = new[] { "GET" },
+          AuthorizationPolicy = AuthPolicies.Authenticated,
+          CustomTransforms = new() { { "PathPattern", "/api/appointment/{id}" } }
       }
   };
 }
