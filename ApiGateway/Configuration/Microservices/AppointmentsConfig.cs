@@ -72,7 +72,7 @@ public class AppointmentConfig : MicroserviceConfig {
       {
           Name = "appointment-cancel",
           Path = "/appointment/cancel",
-          Methods = new[] { "POST" },
+          Methods = new[] { "PATCH" },
           AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/appointment/cancel" } }
       },
@@ -80,7 +80,7 @@ public class AppointmentConfig : MicroserviceConfig {
       {
           Name = "appointment-notattended",
           Path = "/appointment/notattended",
-          Methods = new[] { "POST" },
+          Methods = new[] { "PATCH" },
           AuthorizationPolicy = AuthPolicies.Authenticated,
           CustomTransforms = new() { { "PathPattern", "/api/appointment/notattended" } }
       },
