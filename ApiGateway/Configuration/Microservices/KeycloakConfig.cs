@@ -5,7 +5,7 @@ public class KeycloakConfig : MicroserviceConfig
     private const string Realm = "group3realm";
     public override string Name => "Keycloak";
     public override string ClusterId => "keycloak";
-    public override string BaseUrl => "http://154.38.180.80:8080";
+    public override string BaseUrl => "http://207.180.197.169:8080";
 
     public override List<MicroserviceRoute> GetRoutes() => new()
     {

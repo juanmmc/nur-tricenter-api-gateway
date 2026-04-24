@@ -30,7 +30,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 var keycloakAuthority = Environment.GetEnvironmentVariable("KEYCLOAK_AUTHORITY")
-    ?? "http://154.38.180.80:8080/realms/group3realm";
+    ?? "http://207.180.197.169:8080/realms/group3realm";
 var keycloakAudience = Environment.GetEnvironmentVariable("KEYCLOAK_AUDIENCE")
     ?? "account";
 var requireHttpsMetadata = bool.TryParse(

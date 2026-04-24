@@ -13,11 +13,11 @@ public class ConsulDiscoveryServiceTests
         [
           {
             "Node": { "Address": "10.0.0.5" },
-            "Service": { "ID": "svc-1", "Service": "patients", "Address": "154.38.180.80", "Port": 8080 }
+            "Service": { "ID": "svc-1", "Service": "patients", "Address": "207.180.197.169", "Port": 8080 }
           },
           {
             "Node": { "Address": "10.0.0.6" },
-            "Service": { "ID": "svc-2", "Service": "patients", "Address": "154.38.180.80", "Port": 8081 }
+            "Service": { "ID": "svc-2", "Service": "patients", "Address": "207.180.197.169", "Port": 8081 }
           }
         ]
         """;
@@ -25,10 +25,10 @@ public class ConsulDiscoveryServiceTests
         var instances = ConsulDiscoveryService.ParseInstances(ToStream(json), "patients");
 
         Assert.Equal(2, instances.Count);
-        Assert.Equal("154.38.180.80", instances[0].Address);
+        Assert.Equal("207.180.197.169", instances[0].Address);
         Assert.Equal(8080, instances[0].Port);
         Assert.Equal("svc-1", instances[0].ServiceId);
-        Assert.Equal("http://154.38.180.80:8080", instances[0].ToHttpUrl());
+        Assert.Equal("http://207.180.197.169:8080", instances[0].ToHttpUrl());
     }
 
     [Fact]

@@ -13,17 +13,17 @@ services:
       - SERVICE_NAME=nur-tricenter-api-gateway
       - SERVICE_VERSION=1.0.0
       - SERVICE_ID=${SERVICE_ID:-nur-tricenter-api-gateway}
-      - SERVICE_ADDRESS=${SERVICE_ADDRESS:-154.38.180.80}
+      - SERVICE_ADDRESS=${SERVICE_ADDRESS:-207.180.197.169}
       - SERVICE_PORT=${SERVICE_PORT:-5000}
       - HEALTH_CHECK_PATH=${HEALTH_CHECK_PATH:-/health}
       - HEALTH_CHECK_INTERVAL=${HEALTH_CHECK_INTERVAL:-15s}
       - HEALTH_CHECK_TIMEOUT=${HEALTH_CHECK_TIMEOUT:-5s}
       - CONSUL_DEREGISTER_AFTER=${CONSUL_DEREGISTER_AFTER:-1m}
       - CONSUL_ENABLED=${CONSUL_ENABLED:-true}
-      - CONSUL_HOST=${CONSUL_HOST:-154.38.180.80}
+      - CONSUL_HOST=${CONSUL_HOST:-207.180.197.169}
       - CONSUL_PORT=${CONSUL_PORT:-8500}
       - TRACING_ENABLED=${TRACING_ENABLED:-true}
-      - ZIPKIN_ENDPOINT=${ZIPKIN_ENDPOINT:-http://154.38.180.80:9411/api/v2/spans}
+      - ZIPKIN_ENDPOINT=${ZIPKIN_ENDPOINT:-http://207.180.197.169:9411/api/v2/spans}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
